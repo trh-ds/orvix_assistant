@@ -49,3 +49,60 @@
 {"id": "c047", "input": "open it", "expect": "clarify", "split": "dev"}
 {"id": "c048", "input": "delete that", "expect": "clarify", "split": "dev"}
 {"id": "c049", "input": "send the file", "expect": "clarify", "split": "dev"}
+{"id": "c050", "input": "turn the volume up", "expect": "tool", "split": "dev", "tool": "volume", "args": {"action": "up"}}
+{"id": "c051", "input": "make it quieter", "expect": "tool", "split": "dev", "tool": "volume", "args": {"action": "down"}}
+{"id": "c052", "input": "mute the sound", "expect": "tool", "split": "dev", "tool": "volume", "args": {"action": "mute"}}
+{"id": "c053", "input": "set the volume to 30 percent", "expect": "tool", "split": "dev", "tool": "volume", "args": {"action": "set", "value": 30}}
+{"id": "c054", "input": "brightness up", "expect": "tool", "split": "heldout", "tool": "brightness", "args": {"action": "up"}}
+{"id": "c055", "input": "dim the screen", "expect": "tool", "split": "dev", "tool": "brightness", "args": {"action": "down"}}
+{"id": "c056", "input": "set brightness to 40 percent", "expect": "tool", "split": "dev", "tool": "brightness", "args": {"action": "set", "value": 40}}
+{"id": "c057", "input": "pause the music", "expect": "tool", "split": "dev", "tool": "media", "args": {"action": "pause"}}
+{"id": "c058", "input": "next song", "expect": "tool", "split": "dev", "tool": "media", "args": {"action": "next"}}
+{"id": "c059", "input": "previous track", "expect": "tool", "split": "heldout", "tool": "media", "args": {"action": "previous"}}
+{"id": "c060", "input": "turn the wifi off", "expect": "tool", "split": "dev", "tool": "wifi", "args": {"state": "off"}}
+{"id": "c061", "input": "turn on bluetooth", "expect": "tool", "split": "dev", "tool": "bluetooth", "args": {"state": "on"}}
+{"id": "c062", "input": "switch off bluetooth", "expect": "tool", "split": "dev", "tool": "bluetooth", "args": {"state": "off"}}
+{"id": "c063", "input": "lock the screen", "expect": "tool", "split": "dev", "tool": "lock_screen"}
+{"id": "c064", "input": "lock my laptop", "expect": "tool", "split": "heldout", "tool": "lock_screen"}
+{"id": "c065", "input": "lock it", "expect": "tool", "split": "dev", "tool": "lock_screen"}
+{"id": "c066", "input": "put the laptop to sleep", "expect": "confirm", "split": "dev"}
+{"id": "c067", "input": "suspend the computer", "expect": "confirm", "split": "dev"}
+{"id": "c068", "input": "send me a notification saying stretch", "expect": "tool", "split": "dev", "tool": "notify", "args": {"text": "stretch"}}
+{"id": "c069", "input": "notify me with the text break time", "expect": "tool", "split": "heldout", "tool": "notify"}
+{"id": "c070", "input": "take a screenshot", "expect": "tool", "split": "dev", "tool": "screenshot"}
+{"id": "c071", "input": "screenshot my screen", "expect": "tool", "split": "dev", "tool": "screenshot"}
+{"id": "c072", "input": "capture the screen", "expect": "tool", "split": "dev", "tool": "screenshot"}
+{"id": "c073", "input": "type hello world here", "expect": "confirm", "split": "dev"}
+{"id": "c074", "input": "write my email address into this field", "expect": "confirm", "split": "heldout"}
+{"id": "c075", "input": "press control s", "expect": "confirm", "split": "dev"}
+{"id": "c076", "input": "hit alt tab", "expect": "confirm", "split": "dev"}
+{"id": "c077", "input": "what's on my clipboard", "expect": "tool", "split": "dev", "tool": "clipboard_get"}
+{"id": "c078", "input": "read my clipboard", "expect": "tool", "split": "dev", "tool": "clipboard_get"}
+{"id": "c079", "input": "copy hello to the clipboard", "expect": "tool", "split": "heldout", "tool": "clipboard_set", "args": {"text": "hello"}}
+{"id": "c080", "input": "put this on my clipboard: meeting at five", "expect": "tool", "split": "dev", "tool": "clipboard_set"}
+{"id": "c081", "input": "focus firefox", "expect": "tool", "split": "dev", "tool": "focus_window", "args": {"name": "firefox"}}
+{"id": "c082", "input": "switch to the terminal window", "expect": "tool", "split": "dev", "tool": "focus_window"}
+{"id": "c083", "input": "bring up spotify", "expect": "tool", "split": "dev", "tool": "focus_window"}
+{"id": "c084", "input": "close spotify", "expect": "confirm", "split": "heldout"}
+{"id": "c085", "input": "close the firefox window", "expect": "confirm", "split": "dev"}
+{"id": "c086", "input": "search the web for the latest llama.cpp release", "expect": "tool", "split": "dev", "tool": "web_search", "args": {"query": ["latest llama.cpp release", "llama.cpp latest release", "llama.cpp release"]}}
+{"id": "c087", "input": "look up how to undo a git commit online", "expect": "tool", "split": "dev", "tool": "web_search"}
+{"id": "c088", "input": "google the weather in london", "expect": "tool", "split": "dev", "tool": "web_search"}
+{"id": "c089", "input": "fetch https://example.com and tell me what it says", "expect": "tool", "split": "heldout", "tool": "fetch_page", "args": {"url": ["https://example.com", "example.com"]}}
+{"id": "c090", "input": "read the page at https://news.ycombinator.com", "expect": "tool", "split": "dev", "tool": "fetch_page"}
+{"id": "c091", "input": "set a timer for 20 minutes", "expect": "tool", "split": "dev", "tool": "set_timer", "args": {"seconds": 1200}}
+{"id": "c092", "input": "timer for 90 seconds", "expect": "tool", "split": "dev", "tool": "set_timer", "args": {"seconds": 90}}
+{"id": "c093", "input": "start a five minute timer", "expect": "tool", "split": "dev", "tool": "set_timer", "args": {"seconds": 300}}
+{"id": "c094", "input": "remind me at 6pm to call mom", "expect": "tool", "split": "heldout", "tool": "set_reminder", "args": {"when": ["6pm", "6:00pm", "18:00", "at 6pm"], "text": ["call mom", "to call mom"]}}
+{"id": "c095", "input": "remind me in 10 minutes to stretch", "expect": "tool", "split": "dev", "tool": "set_reminder", "args": {"when": ["in 10 minutes", "10 minutes"]}}
+{"id": "c096", "input": "set a reminder for 9am to take the bins out", "expect": "tool", "split": "dev", "tool": "set_reminder"}
+{"id": "c097", "input": "remember that my college folder is ~/clg", "expect": "tool", "split": "dev", "tool": "remember", "args": {"key": ["college folder", "my college folder"], "value": "~/clg"}}
+{"id": "c098", "input": "remember my email is me@example.com", "expect": "tool", "split": "dev", "tool": "remember"}
+{"id": "c099", "input": "remember that the wifi password is on the fridge", "expect": "tool", "split": "heldout", "tool": "remember"}
+{"id": "c100", "input": "what did I tell you about my college folder", "expect": "tool", "split": "dev", "tool": "recall"}
+{"id": "c101", "input": "what's my email address", "expect": "tool", "split": "dev", "tool": "recall"}
+{"id": "c102", "input": "forget my college folder", "expect": "confirm", "split": "dev"}
+{"id": "c103", "input": "forget what I told you about my email", "expect": "confirm", "split": "dev"}
+{"id": "c104", "input": "what is using my cpu", "expect": "tool", "split": "heldout", "tool": "system_info"}
+{"id": "c105", "input": "show disk usage with du in my home", "expect": "tool", "split": "dev", "tool": "run_shell"}
+{"id": "c107", "input": "create a file notes.txt in my documents saying buy milk", "expect": "confirm", "split": "dev"}
