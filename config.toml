@@ -1,0 +1,33 @@
+# All model names, tags and thresholds live here. Never hard-code them.
+
+[llm]
+host = "http://localhost:11434"
+model = "qwen3.5:4b"          # Phase 0 decides; VERIFY the Nemotron-3-Nano-4B tag
+keep_alive = -1
+num_ctx = 4096
+temperature = 0.6
+top_p = 0.95
+think = false
+top_k_tools = 4
+
+[router]
+engine = "none"               # none | embed | jev-cpu   (Phase 0/4 decides)
+confidence_threshold = 0.6
+
+[stt]
+model = "base.en"
+compute_type = "int8"
+
+[tts]
+engine = "piper"
+
+[loop]
+max_tool_calls = 5
+tool_timeout_s = 30
+tool_output_cap = 2000
+confirm_timeout_s = 10
+
+[paths]
+home = "~"
+db = "data/orvix.db"
+blocked = ["~/.ssh", "~/.gnupg", "~/.mozilla", "~/.config/google-chrome", "~/.password-store"]
