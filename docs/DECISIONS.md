@@ -16,6 +16,22 @@ Update this file whenever something is measured, decided or found to be wrong. D
 | 8 | No LangChain / LangGraph | Overhead and opacity with a 4B model |
 | 9 | Safety gate with SAFE / CONFIRM / BLOCKED from day one | A small model with shell access will eventually be wrong |
 
+## Build status (4 Oct 2026)
+
+Code written in a cloud sandbox with no GPU, no Ollama, no audio and no desktop session. Everything below is covered by unit tests with fakes; **nothing here has been measured on `pipinstalltrh`**, so no phase acceptance check has been passed.
+
+| Area | State |
+| --- | --- |
+| Scaffold, config, SQLite store, interfaces, timing | Done, tested |
+| Ollama client, turn loop, `--text` mode | Done, tested against a mock and a fake Ollama server; never run against a real model |
+| Safety policy + gate | Done; 70+ policy cases; destructive commands never run unconfirmed in tests |
+| Tools: apps, files, shell, system, desktop, web, timers, memory | Done with mocked backends; real backends untested |
+| Router | Fast rules + similarity top-k (option 3). Router-only eval on the seed set: ~95% tool offered, 17/17 fast-path correct, 0.05 ms/decision. Default stays `engine = "none"` until `orvix eval` on the real model shows no accuracy drop |
+| Eval set | 106 seed cases written by the assistant, **not** the owner's real commands. Replace/extend with real ones in Phase 3 |
+| Voice (STT, VAD, TTS, wake word), stop-hotkey listener, systemd, MCP server | Not started; need the laptop |
+
+Next, on the laptop: `uv run orvix probe`, pull the model, `uv run orvix bench`, `uv run orvix eval`, then paste the numbers into the measurement log below.
+
 ## Assumptions not yet verified
 
 Each of these came from a model card, README or tool output, not from a test on this machine. Phase 0 resolves them.
@@ -34,7 +50,7 @@ Each of these came from a model card, README or tool output, not from a test on 
 
 ## Open questions for the owner
 
-- [ ] X11 or Wayland, and which desktop environment? (Phase 0 detects it; decides the keyboard and window backends.)
+- [ ] X11 or Wayland (`orvix probe` prints it), and which desktop environment? (Phase 0 detects it; decides the keyboard and window backends.)
 - [ ] How much system RAM? (Decides Whisper model size and whether the CPU router fits comfortably.)
 - [ ] Wake word: "Orvix", "Jarvis", or something else?
 - [ ] Should it speak every confirmation, or use a notification with a key press when you are in a call or playing audio?
