@@ -42,9 +42,9 @@ class Registry:
 
 def build_registry(ctx: ToolContext) -> Registry:
     """Register every shipped tool. New tool = one class + one line here."""
-    from orvix.tools import apps, files, info
+    from orvix.tools import apps, files, info, shell
 
     reg = Registry()
-    for cls in (*apps.TOOLS, *files.TOOLS, *info.TOOLS):
+    for cls in (*apps.TOOLS, *files.TOOLS, *info.TOOLS, *shell.TOOLS):
         reg.register(cls(ctx))
     return reg

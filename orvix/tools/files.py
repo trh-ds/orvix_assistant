@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from orvix.core.interfaces import ToolResult
+from orvix.core.interfaces import Risk, ToolResult
 from orvix.tools.base import BaseTool, ToolContext
 
 KNOWN_DIRS = {
@@ -151,4 +151,59 @@ class ReadFile(BaseTool):
         return self.ok(text)
 
 
-TOOLS = (FindPath, ListDir, ReadFile)
+class WriteFileArgs(BaseModel):
+    path: str = Field(description="File path to create or overwrite")
+    content: str = Field(description="Full file content")
+
+
+class WriteFile(BaseTool):
+    name = "write_file"
+    category = "files"
+    description = "Create or overwrite a text file."
+    params = WriteFileArgs
+    risk = Risk.CONFIRM
+    last_reason = ""
+
+    def assess(self, args: WriteFileArgs) -> Risk:
+        p = self.ctx.resolve(args.path)
+        if self.ctx.is_secret(p):
+            self.last_reason = "protected path"
+            return Risk.BLOCKED
+        self.last_reason = "overwrites an existing file" if p.exists() else "creates a file"
+        return Risk.CONFIRM
+
+    def run(self, args: WriteFileArgs) -> ToolResult:
+        p = self.ctx.resolve(args.path)
+        if self.ctx.is_secret(p):
+            return self.fail("That path is protected")
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(args.content)
+        except OSError as e:
+            return self.fail(str(e))
+        return self.ok(f"Wrote {len(args.content)} characters to {p}")
+
+
+class OpenFileArgs(BaseModel):
+    path: str = Field(description="File path to open with its default app")
+
+
+class OpenFile(BaseTool):
+    name = "open_file"
+    category = "files"
+    description = "Open a file with its default application."
+    params = OpenFileArgs
+
+    def run(self, args: OpenFileArgs) -> ToolResult:
+        p = self.ctx.resolve(args.path)
+        if self.ctx.is_secret(p):
+            return self.fail("That path is protected")
+        if not p.exists():
+            return self.fail(f"Path does not exist: {p}")
+        if not shutil.which("xdg-open"):
+            return self.fail("xdg-open is not installed")
+        self.ctx.runner.launch(["xdg-open", str(p)])
+        return self.ok(f"Opened {p}")
+
+
+TOOLS = (FindPath, ListDir, ReadFile, WriteFile, OpenFile)
