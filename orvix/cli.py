@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import signal
 import sys
 from pathlib import Path
 
 from orvix.core.config import ROOT, load_config
+from orvix.core.reminders import ReminderPoller
+from orvix.core.stop import StopController
 from orvix.memory.store import Store
 from orvix.tools.base import ToolContext
 from orvix.tools.registry import build_registry
@@ -16,7 +19,8 @@ from orvix.tools.registry import build_registry
 def _context(config_path: Path | None):
     cfg = load_config(config_path)
     store = Store(cfg.paths.db_path)
-    return cfg, store, build_registry(ToolContext(cfg=cfg, store=store))
+    ctx = ToolContext(cfg=cfg, store=store)
+    return cfg, store, build_registry(ctx)
 
 
 async def _typed_confirm(prompt: str) -> bool:
@@ -41,6 +45,13 @@ async def run_text(config_path: Path | None) -> int:
 
     gate = Gate(_typed_confirm, cfg.loop.confirm_timeout_s)
     orch = Orchestrator(cfg, llm, registry, gate, store)
+    ctx = registry.all()[0].ctx
+    stop = StopController(ctx.stop, registry.kill_all)
+    stop.bind(asyncio.get_running_loop())
+    asyncio.get_running_loop().add_signal_handler(signal.SIGINT, stop.trigger)
+    poller = asyncio.create_task(
+        ReminderPoller(store, notify=lambda t: print(f"\n[reminder] {t}", flush=True)).run()
+    )
     print("Orvix text mode. Type a command, or 'quit'. Ctrl+C stops the current turn.")
     try:
         while True:
@@ -53,19 +64,23 @@ async def run_text(config_path: Path | None) -> int:
                 continue
             if line.lower() in {"quit", "exit"}:
                 break
+            stop.reset()
             task = asyncio.create_task(orch.turn(line))
+            stop.track(task)
             try:
                 res = await task
-            except (KeyboardInterrupt, asyncio.CancelledError):
-                task.cancel()
+            except asyncio.CancelledError:
                 print("\nStopped.")
                 continue
+            finally:
+                stop.track(None)
             print(f"\nOrvix: {res.reply}")
             shown = {k: v for k, v in res.timings.items() if k.startswith("mark:")}
             print(
                 f"  [{', '.join(f'{k[5:]} {v:.0f} ms' for k, v in shown.items())}]" if shown else ""
             )
     finally:
+        poller.cancel()
         await llm.aclose()
     return 0
 

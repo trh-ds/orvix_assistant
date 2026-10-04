@@ -76,3 +76,10 @@ def test_destructive_never_runs_unconfirmed(ctx, cmd):
     g = Gate(lambda p: False)
     t = shell.RunShell(ctx)
     assert not auth(g, t, shell.RunShellArgs(cmd=cmd)).allowed
+
+
+def test_confirm_prompt_flags_web_content(ctx):
+    seen = []
+    g = Gate(lambda p: seen.append(p) or True)
+    auth(g, shell.RunShell(ctx), shell.RunShellArgs(cmd="rm x"), State(web_content_seen=True))
+    assert "web content" in seen[0]
