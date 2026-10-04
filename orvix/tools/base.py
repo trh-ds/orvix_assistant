@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar
@@ -92,6 +93,12 @@ class ToolContext:
     cfg: Config
     store: Store
     runner: Runner = field(default_factory=Runner)
+    stop: threading.Event = field(default_factory=threading.Event)  # set by the stop hotkey
+    session_type: str = field(default_factory=lambda: os.environ.get("XDG_SESSION_TYPE", "x11"))
+
+    @property
+    def wayland(self) -> bool:
+        return self.session_type.lower() == "wayland"
 
     @property
     def home(self) -> Path:
