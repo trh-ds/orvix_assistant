@@ -7,7 +7,7 @@ import subprocess
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from pydantic import BaseModel
 
@@ -93,6 +93,7 @@ class ToolContext:
     cfg: Config
     store: Store
     runner: Runner = field(default_factory=Runner)
+    http_transport: Any = None  # tests inject httpx.MockTransport
     stop: threading.Event = field(default_factory=threading.Event)  # set by the stop hotkey
     session_type: str = field(default_factory=lambda: os.environ.get("XDG_SESSION_TYPE", "x11"))
 
