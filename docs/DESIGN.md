@@ -132,21 +132,30 @@ orvix_assistant/
 class STT(Protocol):
     def transcribe(self, pcm: np.ndarray) -> str: ...
 
+
 class Router(Protocol):
-    def decide(self, text: str, state: State) -> Decision: ...   # Decision(kind, tool, category, confidence)
+    def decide(
+        self, text: str, state: State
+    ) -> Decision: ...  # Decision(kind, tool, category, confidence)
+
 
 class LLM(Protocol):
-    def chat(self, messages: list[Msg], tools: list[ToolSpec], think: bool) -> AsyncIterator[Chunk]: ...
+    def chat(
+        self, messages: list[Msg], tools: list[ToolSpec], think: bool
+    ) -> AsyncIterator[Chunk]: ...
+
 
 class Tool(Protocol):
     name: str
-    description: str          # one line, written for a 4B model
-    params: type[BaseModel]   # pydantic schema
-    risk: Risk                # SAFE | CONFIRM | BLOCKED
+    description: str  # one line, written for a 4B model
+    params: type[BaseModel]  # pydantic schema
+    risk: Risk  # SAFE | CONFIRM | BLOCKED
+
     def run(self, args: BaseModel) -> ToolResult: ...
 
+
 class TTS(Protocol):
-    def speak(self, text: str) -> None: ...      # non-blocking, interruptible
+    def speak(self, text: str) -> None: ...  # non-blocking, interruptible
 ```
 
 ## Agent loop limits
