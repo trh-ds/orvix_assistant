@@ -79,6 +79,7 @@ class Chunk:
     text: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
     done: bool = False
+    stats: dict[str, Any] = field(default_factory=dict)  # final chunk: runtime timing counters
 
 
 @runtime_checkable
