@@ -99,7 +99,7 @@ class Orchestrator:
         if tool is None:
             return "", False
         try:
-            args = tool.params()  # zero-argument tools only
+            args = tool.params.model_validate(decision.args or {})
         except ValidationError:
             return "", False  # needs arguments: fall through to the LLM
         res = await self._execute(turn_id, tool.name, args, t, called, mark="action_start")
@@ -107,7 +107,7 @@ class Orchestrator:
 
     async def _llm_path(self, turn_id, text, decision, t: Timings, called) -> tuple[str, bool]:
         names = self._tool_names(decision)
-        specs = self.registry.specs(names)
+        specs = self.registry.specs(names)  # None = full catalogue, [] = no tools
         think = bool(decision and decision.kind == "MULTI") or self.cfg.llm.think
         messages = [Msg("system", SYSTEM_PROMPT), *self.history]
         fb = facts_block(self.store.search_facts(text))
@@ -130,6 +130,10 @@ class Orchestrator:
                 messages.append(Msg("tool", result.text(), name=call.name))
 
     def _tool_names(self, decision: Decision | None) -> list[str] | None:
+        if decision and decision.kind == "CHAT":
+            return []
+        if decision and decision.tools:
+            return decision.tools
         if decision and decision.category:
             names = [x.name for x in self.registry.by_category(decision.category)]
             return names or None

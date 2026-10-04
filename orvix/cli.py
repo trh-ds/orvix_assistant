@@ -12,6 +12,7 @@ from orvix.core.config import ROOT, load_config
 from orvix.core.reminders import ReminderPoller
 from orvix.core.stop import StopController
 from orvix.memory.store import Store
+from orvix.router import build_router
 from orvix.tools.base import ToolContext
 from orvix.tools.registry import build_registry
 
@@ -44,7 +45,7 @@ async def run_text(config_path: Path | None) -> int:
         return 1
 
     gate = Gate(_typed_confirm, cfg.loop.confirm_timeout_s)
-    orch = Orchestrator(cfg, llm, registry, gate, store)
+    orch = Orchestrator(cfg, llm, registry, gate, store, router=build_router(cfg, registry))
     ctx = registry.all()[0].ctx
     stop = StopController(ctx.stop, registry.kill_all)
     stop.bind(asyncio.get_running_loop())
@@ -99,12 +100,19 @@ async def run_bench(config_path: Path | None) -> int:
     return 0
 
 
-async def run_eval_cmd(config_path: Path | None, path: Path) -> int:
+async def run_eval_cmd(config_path: Path | None, path: Path, router_only: bool = False) -> int:
     from orvix.evalrun import load_cases, run_eval, summarize
     from orvix.llm.ollama_client import LLMError, OllamaClient
 
     cfg, _, registry = _context(config_path)
     cases = load_cases(path)
+    if router_only:
+        from orvix.evalrun import route_only, summarize_route
+        from orvix.router.embed_fallback import SimilarityRouter
+
+        router = SimilarityRouter(registry, cfg.router, cfg.llm.top_k_tools)
+        print(summarize_route(route_only(cases, router)))
+        return 0
     llm = OllamaClient(cfg.llm)
     try:
         await llm.warm()
@@ -127,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("bench", help="latency benchmark")
     ev = sub.add_parser("eval", help="run the command eval set")
     ev.add_argument("--file", type=Path, default=ROOT / "evals" / "commands.jsonl")
+    ev.add_argument("--router-only", action="store_true", help="score the router without an LLM")
     args = p.parse_args(argv)
 
     if args.cmd == "probe":
@@ -138,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "bench":
         return asyncio.run(run_bench(args.config))
     if args.cmd == "eval":
-        return asyncio.run(run_eval_cmd(args.config, args.file))
+        return asyncio.run(run_eval_cmd(args.config, args.file, args.router_only))
     if args.text:
         return asyncio.run(run_text(args.config))
     print("Voice mode arrives in Phase 6. Use `orvix --text` for now.", file=sys.stderr)

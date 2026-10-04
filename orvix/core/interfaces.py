@@ -38,6 +38,8 @@ class Decision:
     tool: str | None = None
     category: str | None = None
     confidence: float = 0.0
+    args: dict[str, Any] | None = None  # fixed arguments for FAST tools
+    tools: list[str] = field(default_factory=list)  # top-k tool names to offer the LLM
 
 
 @dataclass

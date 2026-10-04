@@ -194,3 +194,37 @@ async def test_cancel_stops_turn(ctx):
     except asyncio.CancelledError:
         pass
     assert ctx.store.turns()[0]["reply"] == "Stopped."
+
+
+async def test_fast_path_uses_router_args(ctx, monkeypatch):
+    from orvix.tools.base import Proc
+
+    monkeypatch.setattr("shutil.which", lambda n: f"/usr/bin/{n}")
+    ctx.runner.next = Proc(0, "", "")
+
+    class R:
+        def decide(self, text, state):
+            return Decision("FAST", tool="volume", args={"action": "up"}, confidence=1.0)
+
+    llm = ScriptedLLM()
+    o, _ = make(ctx, llm, router=R())
+    r = await o.turn("louder")
+    assert r.success and llm.seen == []
+    assert ctx.runner.ran[-1][:2] == ["wpctl", "set-volume"]
+
+
+async def test_router_top_k_and_chat_limit_tools(ctx):
+    class R:
+        def __init__(self, d):
+            self.d = d
+
+        def decide(self, text, state):
+            return self.d
+
+    llm = ScriptedLLM("a", "b")
+    o, _ = make(ctx, llm, router=R(Decision("LLM", tools=["now", "volume"])))
+    await o.turn("x")
+    assert llm.seen[0][1] == ["now", "volume"]
+    o.router = R(Decision("CHAT"))
+    await o.turn("y")
+    assert llm.seen[1][1] == []

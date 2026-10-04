@@ -138,3 +138,60 @@ def summarize(results: list[CaseResult]) -> str:
             for r in fails
         ]
     return "\n".join(lines)
+
+
+@dataclass
+class RouteScore:
+    n_tool: int = 0
+    in_topk: int = 0
+    fast: int = 0
+    fast_correct: int = 0
+    wrong_fast_on_nontool: int = 0
+    misses: list[str] = field(default_factory=list)
+    latency_ms: float = 0.0
+
+
+def route_only(cases: list[Case], router) -> RouteScore:
+    """Score the router alone (no LLM): is the expected tool offered, and is the fast path right?"""
+    from orvix.core.interfaces import State
+
+    sc = RouteScore()
+    start = time.perf_counter()
+    for c in cases:
+        d = router.decide(c.input, State())
+        if c.expect == "tool":
+            sc.n_tool += 1
+            offered = d.kind == "UNSURE" and not d.tools or c.tool in d.tools or d.tool == c.tool
+            if d.kind == "CHAT":
+                offered = False
+            sc.in_topk += offered
+            if d.kind == "FAST":
+                sc.fast += 1
+                ok = d.tool == c.tool and args_match(c.args, d.args or {})
+                sc.fast_correct += ok
+                if not ok:
+                    sc.misses.append(
+                        f"[{c.id}] {c.input!r}: fast {d.tool}({d.args}) != {c.tool}({c.args})"
+                    )
+            elif not offered:
+                sc.misses.append(
+                    f"[{c.id}] {c.input!r}: wanted {c.tool}, offered {d.tools or d.kind}"
+                )
+        elif d.kind in ("FAST", "CHAT") and c.expect != "chat":
+            sc.wrong_fast_on_nontool += 1
+            sc.misses.append(f"[{c.id}] {c.input!r}: {d.kind} on a {c.expect} case")
+    sc.latency_ms = (time.perf_counter() - start) * 1000 / max(len(cases), 1)
+    return sc
+
+
+def summarize_route(sc: RouteScore) -> str:
+    pct = lambda a, b: f"{100 * a / b:.1f}%" if b else "n/a"  # noqa: E731
+    lines = [
+        f"tool offered to LLM (top-k or full catalogue): {sc.in_topk}/{sc.n_tool} = {pct(sc.in_topk, sc.n_tool)}",
+        f"fast path taken: {sc.fast}   correct: {sc.fast_correct}/{sc.fast}",
+        f"fast/chat path wrongly taken on non-tool cases: {sc.wrong_fast_on_nontool}",
+        f"router latency: {sc.latency_ms:.2f} ms per decision",
+    ]
+    if sc.misses:
+        lines += ["", "Misses:", *[f"  {m}" for m in sc.misses]]
+    return "\n".join(lines)
