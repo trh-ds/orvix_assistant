@@ -91,3 +91,16 @@ def test_info_tools(ctx):
     assert info.Now(ctx).run(info.NoArgs()).ok
     assert info.SystemInfo(ctx).run(info.SystemInfoArgs(kind="ram")).output.startswith("RAM")
     assert info.SystemInfo(ctx).run(info.SystemInfoArgs(kind="processes")).ok
+
+
+def test_every_tool_module_is_registered(ctx):
+    import importlib
+    import pkgutil
+
+    import orvix.tools as pkg
+
+    registered = {type(t) for t in build_registry(ctx).all()}
+    for m in pkgutil.iter_modules(pkg.__path__):
+        mod = importlib.import_module(f"orvix.tools.{m.name}")
+        for cls in getattr(mod, "TOOLS", ()):
+            assert cls in registered, f"{cls.__name__} in {m.name}.TOOLS is not registered"

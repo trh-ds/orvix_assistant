@@ -47,7 +47,7 @@ class Registry:
 
 def build_registry(ctx: ToolContext) -> Registry:
     """Register every shipped tool. New tool = one class + one line here."""
-    from orvix.tools import apps, desktop, files, info, memory, shell, system
+    from orvix.tools import apps, desktop, files, info, memory, shell, system, timers, web
 
     reg = Registry()
     for cls in (
@@ -58,6 +58,8 @@ def build_registry(ctx: ToolContext) -> Registry:
         *memory.TOOLS,
         *system.TOOLS,
         *desktop.TOOLS,
+        *web.TOOLS,
+        *timers.TOOLS,
     ):
         reg.register(cls(ctx))
     return reg
