@@ -25,6 +25,11 @@ class Registry:
     def all(self) -> list[BaseTool]:
         return list(self._tools.values())
 
+    def kill_all(self) -> None:
+        """Kill every subprocess any tool started (stop hotkey, cancelled turn)."""
+        for runner in {id(t.ctx.runner): t.ctx.runner for t in self._tools.values()}.values():
+            runner.kill_all()
+
     def by_category(self, category: str) -> list[BaseTool]:
         return [t for t in self._tools.values() if t.category == category]
 
